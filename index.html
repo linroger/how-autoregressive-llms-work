@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="page.title">Large Language Models, From the Inside — How They Work</title>
+  <meta name="description" data-i18n="page.desc" content="An interactive, illustrated explainer of large language models — from the 2017 Transformer to today's reasoning agents, with worked math, animated visualizations, and primary sources.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://d3js.org/d3.v7.min.js" defer></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"></script>
+</head>
+<body>
+  <!-- ===== Header ===== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#top" class="logo">
+        <svg class="logo-mark" viewBox="0 0 32 32" width="22" height="22" aria-hidden="true">
+          <rect x="2" y="2" width="6" height="6" rx="1" fill="currentColor" opacity="0.95"/>
+          <rect x="10" y="2" width="6" height="6" rx="1" fill="currentColor" opacity="0.55"/>
+          <rect x="18" y="2" width="6" height="6" rx="1" fill="currentColor" opacity="0.95"/>
+          <rect x="2" y="10" width="6" height="6" rx="1" fill="currentColor" opacity="0.25"/>
+          <rect x="10" y="10" width="6" height="6" rx="1" fill="currentColor" opacity="0.95"/>
+          <rect x="18" y="10" width="6" height="6" rx="1" fill="currentColor" opacity="0.55"/>
+          <rect x="2" y="18" width="6" height="6" rx="1" fill="currentColor" opacity="0.95"/>
+          <rect x="10" y="18" width="6" height="6" rx="1" fill="currentColor" opacity="0.25"/>
+          <rect x="18" y="18" width="6" height="6" rx="1" fill="currentColor" opacity="0.95"/>
+        </svg>
+        <span class="logo-text" data-i18n="nav.logo">LLM Internals</span>
+      </a>
+      <nav class="header-nav">
+        <a href="#part-1" data-i18n="nav.part1">Foundations</a>
+        <a href="#part-2" data-i18n="nav.part2">Pretraining</a>
+        <a href="#part-3" data-i18n="nav.part3">Alignment</a>
+        <a href="#part-4" data-i18n="nav.part4">Efficiency</a>
+        <a href="#part-5" data-i18n="nav.part5">Memory & Modality</a>
+        <a href="#part-6" data-i18n="nav.part6">Frontier</a>
+      </nav>
+      <div class="header-controls">
+        <a class="gh-link" href="https://github.com/linroger/how-llms-work" target="_blank" rel="noopener" aria-label="View source on GitHub">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-2.02c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.9-.39.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.77.11 3.06.74.8 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.35.78 1.04.78 2.11v3.13c0 .3.21.66.79.55 4.56-1.52 7.85-5.83 7.85-10.91C23.5 5.65 18.35.5 12 .5Z"/>
+          </svg>
+          <span class="gh-link-text">GitHub</span>
+        </a>
+        <button class="lang-toggle" id="langToggle" aria-label="Toggle language">
+          <span class="lang-en active">EN</span>
+          <span class="lang-sep">/</span>
+          <span class="lang-zh">中</span>
+        </button>
+        <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile drawer -->
+    <nav class="mobile-nav" id="mobileNav" aria-hidden="true">
+      <a href="#part-1" data-i18n="nav.part1">Foundations</a>
+      <a href="#part-2" data-i18n="nav.part2">Pretraining</a>
+      <a href="#part-3" data-i18n="nav.part3">Alignment</a>
+      <a href="#part-4" data-i18n="nav.part4">Efficiency</a>
+      <a href="#part-5" data-i18n="nav.part5">Memory & Modality</a>
+      <a href="#part-6" data-i18n="nav.part6">Frontier</a>
+    </nav>
+  </header>
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+
+  <!-- ===== Side TOC ===== -->
+  <aside class="side-toc" id="sideToc">
+    <div class="toc-title" data-i18n="toc.title">Contents</div>
+    <ol class="toc-list"></ol>
+  </aside>
+
+  <main class="main-content" id="top">
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+      <div class="hero-eyebrow" data-i18n="hero.eyebrow">An interactive technical explainer</div>
+      <h1 class="hero-title">
+        <span data-i18n="hero.titleA">Large Language Models,</span>
+        <span class="hero-title-emphasis" data-i18n="hero.titleB">From the Inside</span>
+      </h1>
+      <p class="hero-subtitle" data-i18n="hero.subtitle">
+        In 2017 a team at Google wrote down a single equation and called it <em>attention</em>. Eight years later, descendants of that equation can write essays, debug code, and reason through olympiad problems. This page is a guided tour of how — from token embeddings up through reasoning agents — with every step you can poke at, slow down, and replay.
+      </p>
+
+      <!-- Hero animated demo: next-token sampling -->
+      <div class="hero-viz">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="hero.demoLabel">Live next-token sampling — watch the model assign probabilities and roll the die</div>
+          <div id="hero-demo" class="hero-demo"></div>
+          <div class="viz-controls">
+            <button class="btn" id="heroPlay" data-i18n="hero.play">▶ Play</button>
+            <button class="btn btn-ghost" id="heroReset" data-i18n="hero.reset">↺ Reset</button>
+            <span class="viz-readout" id="heroStep">token 0 / 12</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <div class="hero-meta-label" data-i18n="hero.metaSections">Sections</div>
+          <div class="hero-meta-value">27</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="hero-meta-label" data-i18n="hero.metaViz">Interactive visualizations</div>
+          <div class="hero-meta-value">27</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="hero-meta-label" data-i18n="hero.metaTime">Read time</div>
+          <div class="hero-meta-value">75 min</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PREFLIGHT ===== -->
+    <section class="preflight" id="preflight">
+      <div class="preflight-eyebrow" data-i18n="preflight.eyebrow">§ 0 · Before we start</div>
+      <h2 class="preflight-title" data-i18n="preflight.title">Five ideas the rest of the page leans on</h2>
+      <div class="preflight-grid">
+        <div class="preflight-card">
+          <div class="preflight-card-h"><span class="num">01</span><span data-i18n="preflight.c1.h">Text is tokens, not letters</span></div>
+          <p data-i18n="preflight.c1.p1">A language model never sees raw characters. "The cat sat." is chopped into chunks called <em>tokens</em> first — usually whole words or sub-word fragments like <code>The</code>, <code>cat</code>, <code>sat</code>, <code>.</code>. Each token is a row index into a giant lookup table called the <em>vocabulary</em>, typically holding 32,000 to 256,000 entries.</p>
+          <p data-i18n="preflight.c1.p2">So to the model, a sentence is a short list of integers. Generating text means emitting more integers and looking up what strings they happen to spell.</p>
+        </div>
+        <div class="preflight-card">
+          <div class="preflight-card-h"><span class="num">02</span><span data-i18n="preflight.c2.h">A neural net is a stack of matrix multiplies</span></div>
+          <p data-i18n="preflight.c2.p1">Strip away the marketing and a Transformer is linear algebra interleaved with a small handful of non-linearities. Every layer multiplies its input by a learned matrix, adds a bias, runs an elementwise activation, and passes the result up. No magic — just billions of fused multiply-adds running on a GPU.</p>
+          <p data-i18n="preflight.c2.p2">The artistry is in <em>which</em> matrices live where, what they're called (attention's Q, K, V; the FFN's up- and down-projections), and how their shapes scale. Once you see that pattern, the whole architecture stops looking exotic.</p>
+        </div>
+        <div class="preflight-card">
+          <div class="preflight-card-h"><span class="num">03</span><span data-i18n="preflight.c3.h">"Predict the next token" means a probability over the whole vocabulary</span></div>
+          <p data-i18n="preflight.c3.p1">When a model "predicts" the next word, what it really hands back is a probability for <em>every</em> token in the vocabulary — a vector of 128,000 numbers that sums to 1. Training pushes the right answer's probability up and everything else's down. The loss function with the calculus on its side is called <em>cross-entropy</em>, and it's almost the only loss anyone uses for pretraining.</p>
+          <p data-i18n="preflight.c3.p2">A trained model is one that puts most of its probability mass on a sensible next token. Sampling is then just rolling a weighted die against that vector.</p>
+        </div>
+        <div class="preflight-card">
+          <div class="preflight-card-h"><span class="num">04</span><span data-i18n="preflight.c4.h">Training = gradient descent on trillions of tokens</span></div>
+          <p data-i18n="preflight.c4.p1">There's no clever search algorithm hiding in here. Training measures how wrong the model is (cross-entropy loss), takes the derivative with respect to every parameter (backprop), and nudges each weight a tiny bit in the direction that reduces the error. Then it does that a few trillion more times.</p>
+          <p data-i18n="preflight.c4.p2">What changes a "small toy" into "GPT-4" isn't a different algorithm — it's running the same algorithm on a billion-parameter model across 15 trillion tokens with 10,000 GPUs for three months. Scale, not cleverness, is most of the story.</p>
+        </div>
+        <div class="preflight-card">
+          <div class="preflight-card-h"><span class="num">05</span><span data-i18n="preflight.c5.h">Inference is just running the trained net forward and sampling</span></div>
+          <p data-i18n="preflight.c5.p1">Once training stops, the weights are frozen. To generate text, the model takes your prompt, runs one forward pass, gets a probability vector for the next token, picks one (greedy, top-p, temperature — Part 1 has the menu), appends it, and loops.</p>
+          <p data-i18n="preflight.c5.p2">The forward pass is the same arithmetic every time. The cleverness of modern serving — KV caching, FlashAttention, speculative decoding — is all about doing that arithmetic faster and with less memory. None of it changes the output, only the wall-clock cost of producing it.</p>
+        </div>
+      </div>
+      <p class="preflight-foot" data-i18n="preflight.foot">
+        Hold onto those five. Every new piece on this page — attention, scaling laws, RLHF, MoE, RAG — is a new arrangement of these bricks. If something later feels like it appeared out of nowhere, scroll back here.
+      </p>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- PART 1 — FOUNDATIONS (The Transformer)                          -->
+    <!-- ============================================================== -->
+
+    <div class="part-divider" id="part-1">
+      <div class="part-number">Part 1</div>
+      <h2 class="part-title" data-i18n="part1.title">Foundations: the Transformer</h2>
+      <p class="part-tagline" data-i18n="part1.tag">Tokens, embeddings, attention, and the autoregressive loop that produces every word you read from an LLM.</p>
+    </div>
+
+    <!-- §1 Tokens & embeddings -->
+    <section class="section" id="sec-1">
+      <div class="sec-num">§ 1</div>
+      <h2 class="sec-title" data-i18n="sec1.title">Tokens, Embeddings, and the Vocabulary</h2>
+
+      <p data-i18n="sec1.p1">The first thing a language model does to a string of text is destroy it. "The unhappiest dog" gets sliced into <code>The</code>, <code>ġun</code>, <code>happiest</code>, <code>ġdog</code> — four pieces from a fixed vocabulary of roughly 100,000 possibilities. The slicing algorithm is called <strong>byte-pair encoding (BPE)</strong>, and it was borrowed from a 1994 data-compression paper by Philip Gage. The idea is to start with single characters and greedily merge the pair that appears together most often, until you've built up a vocabulary of common word-fragments. Frequent words like "the" become single tokens; rare words like "unhappiest" decompose into reusable parts.</p>
+
+      <div class="callout callout-primer">
+        <div class="callout-title" data-i18n="sec1.primerTitle">Why not just use words, or just use letters?</div>
+        <p data-i18n="sec1.primerP1">Whole-word vocabularies don't work because language is open-ended — your model will hit "GLP-1" or "skibidi" or "doomscrolling" the first day it's online and have no token for them. Single-character vocabularies don't work either: sequences become five-times longer (which means attention costs twenty-five times more), and the model has to relearn what an "ing" suffix is from scratch every time. BPE splits the difference — common chunks get their own token, rare words fall back to fragments, and nothing ever truly fails to encode.</p>
+      </div>
+
+      <p data-i18n="sec1.p2">Once tokenized, each integer ID gets replaced by a row of a learned <em>embedding matrix</em> $E \in \mathbb{R}^{|V| \times d}$. The vocabulary $|V|$ is around 128,000 in modern models; the embedding dimension $d$ is somewhere between 2,048 and 16,384. So a 50-token prompt becomes a $50 \times d$ matrix of real numbers, and from this point on the model never thinks in words again. It thinks in vectors.</p>
+
+      <div class="callout callout-intuition">
+        <div class="callout-title" data-i18n="sec1.intuTitle">Geometry beats lookup</div>
+        <p data-i18n="sec1.intuP1">A learned embedding has a property a lookup table doesn't: words that mean similar things end up near each other in the vector space. <code>cat</code> and <code>kitten</code> are close. <code>king</code> minus <code>man</code> plus <code>woman</code> lands near <code>queen</code>. The 2013 paper that demonstrated this — word2vec — wasn't a Transformer at all, but it established the philosophical bedrock for everything that came after: <strong>let the model learn its own input representations</strong>. Every embedding matrix you'll see on this page is the direct descendant.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz1_1.label">Figure 1.1 — Type a word; watch BPE chop it into tokens and look up the embedding rows</div>
+          <div id="viz1-1" class="token-strip"></div>
+          <div class="viz-controls">
+            <input type="text" id="viz1-1-input" placeholder="Try: unhappiness" class="viz-input">
+            <button class="btn" id="viz1-1-tokenize" data-i18n="viz1_1.tokenize">Tokenize</button>
+            <button class="btn btn-ghost" id="viz1-1-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz1_1.caption">BPE produces variable-length tokens — common words are one piece, rare words decompose into reusable fragments. The integer ID below each token is the row index into the embedding matrix.</figcaption>
+      </figure>
+    </section>
+
+    <div class="bridge-narrative" data-i18n="bridge.1to2">
+      Embeddings turn words into vectors. But a vector for "bank" by itself doesn't know whether it's a river bank or a savings bank — that information lives in the other words around it. The next move is the heart of the Transformer: a mechanism that lets every token glance at every other token and pull in context. It's called attention.
+    </div>
+
+    <!-- §2 Attention -->
+    <section class="section" id="sec-2">
+      <div class="sec-num">§ 2</div>
+      <h2 class="sec-title" data-i18n="sec2.title">Attention as a Soft Dictionary Lookup</h2>
+
+      <p data-i18n="sec2.p1">Forget the matrix math for a moment. Imagine a hash table where you ask "what's the value for key K?" and get back exactly one entry. Attention is the same operation, but soft: instead of one matching key, you compare your query against <em>every</em> key, get a similarity score for each, normalize those scores into weights that sum to 1, and return a weighted blend of all the values. Nothing is ever wholly retrieved; everything is partially retrieved.</p>
+
+      <div class="callout callout-primer">
+        <div class="callout-title" data-i18n="sec2.primerTitle">Q, K, V — the three projections</div>
+        <p data-i18n="sec2.primerP1">Each token starts as one vector (its embedding plus everything earlier layers have added). Three learned matrices — $W_Q$, $W_K$, $W_V$ — project that single vector into three different vectors: a <strong>query</strong>, a <strong>key</strong>, and a <strong>value</strong>. The query says "here's what I'm looking for." The key says "here's what I am." The value says "here's what I'd contribute if you pick me." Every token plays all three roles for every other token. The matrices are learned end-to-end with the rest of the network.</p>
+      </div>
+
+      <p data-i18n="sec2.p2">Written out, the score between query $i$ and key $j$ is just the dot product $Q_i \cdot K_j$. Stack them into matrices $Q$ and $K$, divide by $\sqrt{d_k}$ (the famous "$1/\sqrt{d_k}$" trick — it keeps the dot products from exploding at large $d$), softmax across the row to get weights that sum to 1, and multiply by $V$:</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec2.mathTitle">The attention formula</div>
+        <div class="math-block">$$ \text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V $$</div>
+        <p class="plain-en" data-i18n="sec2.mathPlain">Three things to read. First, $QK^\top$ is a square matrix of every-query-against-every-key — for a 1,000-token prompt that's a million dot products per attention head. Second, softmax normalizes each row so the weights for one query sum to 1; it's a "soft argmax" that picks a probability-weighted blend rather than a single winner. Third, multiplying by $V$ on the right replaces each token's representation with a weighted average of every token's value. The token at position 5 is now a mixture, by relevance, of information from positions 0 through whatever-the-mask-allows.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz1_2.label">Figure 2.1 — Hover any token to see its attention weights into every other token</div>
+          <div id="viz1-2" class="attention-mask-viz"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz1-2-sentence" data-i18n="viz1_2.next">↻ Different sentence</button>
+            <label class="slider-label">
+              <span data-i18n="viz1_2.head">head</span>
+              <input type="range" id="viz1-2-head" min="0" max="7" value="0">
+            </label>
+          </div>
+        </div>
+        <figcaption data-i18n="viz1_2.caption">Each cell shows softmax(QKᵀ/√d) for that (query, key) pair. The diagonal is bright because every token attends to itself; off-diagonal heat shows which tokens it pulls context from. Different heads light up different relationships.</figcaption>
+      </figure>
+
+      <p data-i18n="sec2.p3">One detail matters for autoregressive models: the <strong>causal mask</strong>. When generating left to right, a token at position 5 must not be allowed to see positions 6 through 9 — those haven't been generated yet. We enforce this by adding $-\infty$ to the upper-triangular part of $QK^\top$ before the softmax, which sends those weights to zero. The picture is a lower-triangular attention matrix. This single masking choice is the difference between GPT-style decoders and BERT-style encoders, which see everything in both directions.</p>
+    </section>
+
+    <div class="bridge-narrative" data-i18n="bridge.2to3">
+      One attention pattern per layer would be a strange thing to commit to — "what tokens are syntactically related" is a different question from "what tokens share a topic." So the Transformer runs many attention computations in parallel, each with its own $W_Q$, $W_K$, $W_V$, and stitches the outputs back together. That's multi-head attention.
+    </div>
+
+    <!-- §3 Multi-head -->
+    <section class="section" id="sec-3">
+      <div class="sec-num">§ 3</div>
+      <h2 class="sec-title" data-i18n="sec3.title">Multi-Head Attention: Many Lenses at Once</h2>
+
+      <p data-i18n="sec3.p1">A single attention head squeezes every relationship between tokens through one $d \times d$ projection. That's a lot of pressure on one matrix. Multi-head attention splits the dimension into $h$ smaller heads of size $d/h$ each (typically $h = 32$ or 64 in modern models), runs them in parallel, and concatenates the results. Each head can specialize: one might track syntactic agreement, another long-range coreference, another local punctuation.</p>
+
+      <div class="callout callout-intuition">
+        <div class="callout-title" data-i18n="sec3.intuTitle">Why heads, not just a wider single head?</div>
+        <p data-i18n="sec3.intuP1">A wider single head could in principle learn anything the heads can, but in practice the softmax bottleneck forces each head into a single "mode" — one dominant attention pattern. Eight smaller heads can express eight modes simultaneously without any of them being washed out. The total parameter count is the same; the inductive bias is different. Same compute, more expressive geometry.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz1_3.label">Figure 3.1 — Eight attention heads on the same sentence — notice the different patterns</div>
+          <div id="viz1-3" class="attention-mask-viz"></div>
+          <div class="viz-controls">
+            <button class="btn btn-ghost" id="viz1-3-shuffle" data-i18n="viz1_3.shuffle">↻ Try another sentence</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz1_3.caption">Eight attention matrices, one per head, on a 12-token sentence. Head 1 is a near-diagonal "previous token" head; head 3 lights up on subject-verb pairs; head 6 attends to punctuation. Specialization is emergent, not engineered.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §4 Positional encoding -->
+    <section class="section" id="sec-4">
+      <div class="sec-num">§ 4</div>
+      <h2 class="sec-title" data-i18n="sec4.title">Where Am I? Positional Encoding</h2>
+
+      <p data-i18n="sec4.p1">Attention as we've defined it has a strange property: it's a set operation. Shuffle the tokens and the math is unchanged — every query still sees every key. That's a problem. "The dog bit the man" and "The man bit the dog" are not the same sentence. We have to inject some notion of <em>where</em> each token sits.</p>
+
+      <p data-i18n="sec4.p2">The 2017 Transformer paper used <strong>sinusoidal positional encoding</strong>: add a fixed vector to each token's embedding, where the vector's entries are sines and cosines at geometrically spaced frequencies. The intuition is that the model can learn to read relative position from the phase difference between two tokens. It works, but it's a static add.</p>
+
+      <div class="callout callout-primer">
+        <div class="callout-title" data-i18n="sec4.primerTitle">RoPE, the modern default</div>
+        <p data-i18n="sec4.primerP1">Almost every model since LLaMA (2023) uses <strong>Rotary Position Embeddings (RoPE)</strong> instead. Rather than adding a position vector, RoPE <em>rotates</em> each pair of dimensions in $Q$ and $K$ by an angle proportional to position. The dot product $Q_i \cdot K_j$ then naturally depends on $i - j$ — relative position emerges from the geometry. The full derivation lives in §20, but the headline is: RoPE generalizes better to longer contexts and is the secret behind every "100K context window" announcement of the past two years.</p>
+        <div class="math-block">$$ Q_i' = R_{\theta, i}\, Q_i, \qquad K_j' = R_{\theta, j}\, K_j, \qquad Q_i' \cdot K_j' = Q_i \cdot R_{\theta, j-i}\, K_j $$</div>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz1_4.label">Figure 4.1 — Sinusoidal vs. rotary: drag the position slider</div>
+          <div id="viz1-4"></div>
+          <div class="viz-controls">
+            <label class="slider-label">
+              <span data-i18n="viz1_4.pos">position</span>
+              <input type="range" id="viz1-4-pos" min="0" max="64" value="8">
+            </label>
+            <button class="btn btn-ghost" id="viz1-4-mode" data-i18n="viz1_4.toggle">Sinusoidal ↔ RoPE</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz1_4.caption">Sinusoidal encodings are added to the embedding (additive). RoPE rotates Q/K pairs in 2D subspaces (multiplicative). Both encode position, but RoPE's relative-position property keeps long-context perplexity flat where sinusoidal degrades.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §5 Transformer block -->
+    <section class="section" id="sec-5">
+      <div class="sec-num">§ 5</div>
+      <h2 class="sec-title" data-i18n="sec5.title">The Transformer Block: FFN, Residuals, RMSNorm</h2>
+
+      <p data-i18n="sec5.p1">Attention alone isn't enough. After every attention layer, each token's vector gets pushed through a small two-layer feed-forward network — a <strong>FFN</strong> — that expands the dimension by 4× and then projects back. If attention is how tokens talk to each other, the FFN is where each token thinks privately. Roughly two-thirds of a model's parameters live in these FFNs.</p>
+
+      <p data-i18n="sec5.p2">Two more pieces wrap each sub-layer. <strong>Residual connections</strong> add the input back to the output ($x \mapsto x + f(x)$), which keeps gradients flowing cleanly through dozens of layers. <strong>RMSNorm</strong> (or its older cousin LayerNorm) rescales each vector to have unit RMS norm, which stabilizes training. Modern blocks place norm <em>before</em> the sub-layer ("Pre-LN"), because Post-LN turns out to be a nightmare to train past a dozen layers.</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec5.mathTitle">One block, in three lines</div>
+        <div class="math-block">$$ x' = x + \text{Attn}(\text{RMSNorm}(x)) $$</div>
+        <div class="math-block">$$ x'' = x' + \text{FFN}(\text{RMSNorm}(x')) $$</div>
+        <div class="math-block">$$ \text{FFN}(z) = W_{\text{down}}\, \sigma(W_{\text{up}} z \odot W_{\text{gate}} z) $$</div>
+        <p class="plain-en" data-i18n="sec5.mathPlain">The third line is a <em>gated</em> FFN (SwiGLU), now standard in LLaMA, Mistral, Qwen, DeepSeek. Two parallel up-projections; one passes through a sigmoid-like nonlinearity and gates the other. It's slightly more parameter-efficient than the original ReLU MLP and shows up everywhere.</p>
+      </div>
+
+      <p data-i18n="sec5.p3">Stack 32 or 80 or 120 of these blocks, add a final linear projection from hidden dimension back to vocabulary size ($\mathbb{R}^d \to \mathbb{R}^{|V|}$), softmax it, and you have a full Transformer. A useful mnemonic: a dense decoder has approximately $12 L d^2$ parameters, where $L$ is the number of layers and $d$ is the model dimension. GPT-3 had $L = 96$, $d = 12{,}288$, which gives $12 \cdot 96 \cdot 12{,}288^2 \approx 174$ billion. There's the famous 175B.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz1_5.label">Figure 5.1 — Click any sub-layer to expand its internals</div>
+          <div id="viz1-5" class="arch-anatomy"></div>
+        </div>
+        <figcaption data-i18n="viz1_5.caption">A single Transformer block. Pre-norm, residual stream, multi-head attention, then a SwiGLU FFN. Repeated L times. The residual stream is the central highway — every sub-layer reads from it and writes back.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §6 Autoregressive generation -->
+    <section class="section" id="sec-6">
+      <div class="sec-num">§ 6</div>
+      <h2 class="sec-title" data-i18n="sec6.title">Generating Text: Sampling, Temperature, Top-p</h2>
+
+      <p data-i18n="sec6.p1">After the final layer, every token position has a distribution over the entire vocabulary. To generate text we take the distribution at the <em>last</em> position, sample a token from it, append it to the prompt, and run the whole forward pass again. This is autoregressive generation, and it is the only thing a vanilla LLM does at inference time.</p>
+
+      <p data-i18n="sec6.p2">The interesting choices are how you sample. The two simplest extremes are <strong>greedy decoding</strong> (always pick the argmax) and <strong>pure sampling</strong> (draw straight from the softmax). Greedy is deterministic and dull; pure sampling is wild and sometimes incoherent. Production systems live in between, with three knobs:</p>
+
+      <ul class="readable-list">
+        <li data-i18n="sec6.s1"><strong>Temperature $T$.</strong> Divide every logit by $T$ before the softmax. $T = 1$ is the model's natural distribution. $T \to 0$ approaches greedy. $T \to \infty$ approaches uniform.</li>
+        <li data-i18n="sec6.s2"><strong>Top-k.</strong> Zero out everything outside the top $k$ logits before softmax. Crude but effective — typical $k$ is around 50.</li>
+        <li data-i18n="sec6.s3"><strong>Top-p (nucleus sampling).</strong> Sort logits, keep the smallest set whose probabilities sum to $p$ (say 0.9), zero out the rest. This adapts to the shape of the distribution: when the model is confident, only one or two tokens make the cut; when it's uncertain, the nucleus is wide. Top-p is the modern default.</li>
+      </ul>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz1_6.label">Figure 6.1 — Play with temperature and top-p; watch the distribution reshape</div>
+          <div id="viz1-6"></div>
+          <div class="viz-controls">
+            <label class="slider-label">
+              <span data-i18n="viz1_6.temp">T = </span><span id="viz1-6-tval">1.0</span>
+              <input type="range" id="viz1-6-t" min="1" max="200" value="100">
+            </label>
+            <label class="slider-label">
+              <span data-i18n="viz1_6.topp">top-p = </span><span id="viz1-6-pval">0.9</span>
+              <input type="range" id="viz1-6-p" min="10" max="100" value="90">
+            </label>
+            <button class="btn" id="viz1-6-sample" data-i18n="viz1_6.sample">Sample 100 tokens</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz1_6.caption">The bars show the next-token distribution after temperature scaling and top-p filtering. Greyed-out bars are excluded from sampling. Watch how T = 0.1 collapses to a single spike, while T = 2 flattens almost everything to noise.</figcaption>
+      </figure>
+    </section>
+
+    <div class="section-bridge" data-i18n="bridge.toPart2">Part 1 built the machine. But a Transformer with random weights does nothing — it's a calculator with no buttons pressed. The next part is about what happens when you point that machine at trillions of tokens and let gradient descent grind.</div>
+
+    <!-- ============================================================== -->
+    <!-- PART 2 — PRETRAINING & SCALING                                  -->
+    <!-- ============================================================== -->
+
+    <div class="part-divider" id="part-2">
+      <div class="part-number">Part 2</div>
+      <h2 class="part-title" data-i18n="part2.title">Pretraining & the Scaling Era</h2>
+      <p class="part-tagline" data-i18n="part2.tag">Cross-entropy, scaling laws, emergent abilities, and the prompt that unlocked reasoning.</p>
+    </div>
+
+    <!-- §7 Cross-entropy -->
+    <section class="section" id="sec-7">
+      <div class="sec-num">§ 7</div>
+      <h2 class="sec-title" data-i18n="sec7.title">What 15 Trillion Tokens Actually Teaches</h2>
+
+      <p data-i18n="sec7.p1">Pretraining is conceptually one line of code: for every position in every document, predict the next token, measure how wrong you were, and nudge the weights. The "how wrong" is <strong>cross-entropy loss</strong>:</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec7.mathTitle">Cross-entropy, in one line</div>
+        <div class="math-block">$$ \mathcal{L} = -\sum_{t} \log p_\theta(x_t \mid x_{<t}) $$</div>
+        <p class="plain-en" data-i18n="sec7.mathPlain">For each position, take the probability the model assigned to the actual next token, take its log, and add it up across the document. Lower loss means the model put more probability on the right answers. The exponential of the average per-token loss is <em>perplexity</em>, the number you'll see plotted in every scaling-law paper.</p>
+      </div>
+
+      <p data-i18n="sec7.p2">The remarkable thing isn't the loss function — it's what next-token prediction implicitly teaches. To predict "the capital of France is ___" the model has to encode geographic facts. To predict the next move in a chess transcript it has to encode chess. To predict the next line of Python it has to encode syntax, types, and idiom. Cross-entropy on a diverse enough corpus pressures the network into building, by accident, a compressed model of the world that produced the text.</p>
+
+      <div class="callout callout-intuition">
+        <div class="callout-title" data-i18n="sec7.intuTitle">Why this single objective works</div>
+        <p data-i18n="sec7.intuP1">There's no theorem that says next-token prediction must produce a useful world model — only the empirical observation that, given enough data and parameters, it does. The community has spent five years trying to understand why. One half-answer: any task can be phrased as a continuation problem ("Q: What's 2+3? A: ___"), so a perfect next-token predictor would be a perfect everything-predictor. Practical models are very far from perfect, but the curve seems smooth enough that "scale it up" has remained a viable research direction.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz2_1.label">Figure 7.1 — Watch cross-entropy loss decompose as the model trains</div>
+          <div id="viz2-1"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz2-1-play" data-i18n="viz.play">▶ Train</button>
+            <button class="btn btn-ghost" id="viz2-1-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz2_1.caption">Loss drops fastest early — easy patterns (capitalization, common words) get learned first — and then slowly grinds down as the model picks up subtler structure. The asymptote is the irreducible entropy of natural language, roughly 1 bit per byte.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §8 Scaling laws -->
+    <section class="section" id="sec-8">
+      <div class="sec-num">§ 8</div>
+      <h2 class="sec-title" data-i18n="sec8.title">Scaling Laws: Kaplan, Chinchilla, and the 20-Tokens Rule</h2>
+
+      <p data-i18n="sec8.p1">In 2020, Jared Kaplan and team at OpenAI ran the most consequential set of experiments in modern ML. They trained hundreds of small models at different sizes, with different dataset sizes, for different durations, and noticed something startling: the loss isn't messy. It's a clean power law in the model size $N$, the dataset size $D$, and the compute budget $C$. Plotted log-log, the points fall on a line.</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec8.mathTitle">The Chinchilla form</div>
+        <div class="math-block">$$ L(N, D) = E + \frac{A}{N^\alpha} + \frac{B}{D^\beta} $$</div>
+        <p class="plain-en" data-i18n="sec8.mathPlain">Loss equals an irreducible floor $E$ plus a "not big enough" penalty that shrinks with parameters $N$, plus a "not enough data" penalty that shrinks with tokens $D$. DeepMind's 2022 fit on hundreds of training runs gave $\alpha \approx 0.34$, $\beta \approx 0.28$. The interesting question is: at a fixed compute budget $C \approx 6ND$ (the 6ND rule, derivable from the forward+backward FLOPs of a Transformer), what's the optimal split between $N$ and $D$?</p>
+      </div>
+
+      <p data-i18n="sec8.p2">Kaplan's 2020 answer said models were undertrained — scale parameters faster than data. Chinchilla's 2022 answer flipped that: at compute-optimal, $N$ and $D$ should grow together, with roughly <strong>20 training tokens per parameter</strong>. GPT-3 (175B parameters, 300B tokens) was therefore 12× under-trained. Chinchilla (70B, 1.4T tokens) outperformed it on nearly every benchmark using the same FLOPs.</p>
+
+      <p data-i18n="sec8.p3">By 2024 the field had pushed past Chinchilla-optimal in the other direction. LLaMA 3 trained an 8B model on 15 trillion tokens — almost 2,000 tokens per parameter. Why? Because compute-optimal is the wrong objective for production. Inference cost scales with $N$; training cost is a one-time bill. Over-training a small model for longer is a fantastic trade if you'll serve it billions of times.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz2_2.label">Figure 8.1 — Slide a compute budget; see the Chinchilla-optimal (N, D) trace out</div>
+          <div id="viz2-2"></div>
+          <div class="viz-controls">
+            <label class="slider-label">
+              <span data-i18n="viz2_2.flops">log10(FLOPs) = </span><span id="viz2-2-fval">22</span>
+              <input type="range" id="viz2-2-f" min="18" max="26" value="22">
+            </label>
+            <button class="btn btn-ghost" id="viz2-2-toggle" data-i18n="viz2_2.toggle">Kaplan ↔ Chinchilla</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz2_2.caption">The contour shows iso-loss curves on the (N, D) plane. The thick line is the compute budget. Where it kisses the lowest contour is the optimal allocation. Kaplan and Chinchilla disagreed about where that point sits.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §9 Emergent abilities -->
+    <section class="section" id="sec-9">
+      <div class="sec-num">§ 9</div>
+      <h2 class="sec-title" data-i18n="sec9.title">Emergent Abilities and In-Context Learning</h2>
+
+      <p data-i18n="sec9.p1">The 2022 paper "Emergent Abilities of Large Language Models" plotted dozens of benchmark scores against model size and observed a recurring pattern: many tasks sat at random-chance accuracy across small models, and then — past some critical scale — accuracy abruptly climbed. Three-digit arithmetic, multi-step reasoning, instruction-following — all phase-transition-shaped curves.</p>
+
+      <p data-i18n="sec9.p2">Whether emergence is "real" or a mirage created by sharp metrics has become a contested question. Schaeffer et al. (2023) argued that on continuous metrics the same transitions look smooth. But the practical observation stands: certain capabilities only appear when you cross a parameter threshold, and you can't reliably interpolate down from a large model's behavior to predict a small model's.</p>
+
+      <p data-i18n="sec9.p3">The cleanest emergent capability is <strong>in-context learning</strong>: the model picks up a new pattern from a handful of examples in the prompt, with no weight updates at all. Show GPT-3 three (input, output) pairs of a made-up task and it'll continue the pattern on a fourth. This was discovered, not engineered. Nobody trained the model to do it. It fell out of next-token prediction at sufficient scale.</p>
+
+      <div class="callout callout-intuition">
+        <div class="callout-title" data-i18n="sec9.intuTitle">A speculative mechanism</div>
+        <p data-i18n="sec9.intuP1">One leading hypothesis: in-context learning is implicit gradient descent inside the forward pass. The attention pattern across the examples in the prompt approximates the updates a real optimizer would make on a tiny dataset, with the result that the model behaves as if it had been briefly fine-tuned on the demos. The math goes through under linear attention; for full softmax attention it's an analogy. But the analogy explains a lot.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz2_3.label">Figure 9.1 — Drag the parameter slider; watch benchmark scores cross thresholds</div>
+          <div id="viz2-3"></div>
+          <div class="viz-controls">
+            <label class="slider-label">
+              <span data-i18n="viz2_3.scale">params (log10) = </span><span id="viz2-3-sval">9.0</span>
+              <input type="range" id="viz2-3-s" min="60" max="120" value="90">
+            </label>
+          </div>
+        </div>
+        <figcaption data-i18n="viz2_3.caption">Six benchmarks plotted against scale. Some grow smoothly. Others — multi-step arithmetic, semantic parsing — stay near zero for a long stretch and then snap up. Where the snap happens depends on the task and the metric.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §10 Chain-of-thought -->
+    <section class="section" id="sec-10">
+      <div class="sec-num">§ 10</div>
+      <h2 class="sec-title" data-i18n="sec10.title">Chain-of-Thought: Five Words That Doubled Reasoning Scores</h2>
+
+      <p data-i18n="sec10.p1">In late 2022, Jason Wei and colleagues at Google noticed that asking a model to "show its work" before giving a final answer changed everything. On GSM8K (grade-school math), GPT-3-style models that scored about 18% directly jumped to 56% when you appended <em>"Let's think step by step"</em> to the prompt. Same weights, same model. The only change was the prompt.</p>
+
+      <p data-i18n="sec10.p2">Chain-of-thought (CoT) prompting works because the model is a sequence machine. Forcing it to lay out intermediate steps in tokens gives later tokens richer context to attend to — the math problem now has the reasoning visible, not just a question and a final number. It's the same trick humans use when we scribble on scratch paper.</p>
+
+      <div class="callout callout-primer">
+        <div class="callout-title" data-i18n="sec10.primerTitle">Why this matters beyond a prompt trick</div>
+        <p data-i18n="sec10.primerP">CoT is the conceptual bridge from "LLMs as fluent text generators" to "LLMs as reasoners." Every reasoning model of 2024–2026 — OpenAI's o1, DeepSeek's R1, Anthropic's extended-thinking Claude — is essentially a CoT model that's been further trained to generate longer, more careful internal chains. The "scratchpad" went from a prompt artifact to a first-class object in the model's training pipeline. We'll see how in §14.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz2_4.label">Figure 10.1 — Same math problem, two prompts: direct answer vs. chain-of-thought</div>
+          <div id="viz2-4" class="dual-viz"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz2-4-play" data-i18n="viz.play">▶ Generate both</button>
+            <button class="btn btn-ghost" id="viz2-4-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz2_4.caption">Left: direct answer, often wrong on multi-step problems. Right: same model with "let's think step by step," accuracy roughly triples on grade-school math. The model didn't get smarter — it got room to compute.</figcaption>
+      </figure>
+    </section>
+
+    <div class="section-bridge" data-i18n="bridge.toPart3">A pretrained model is a remarkable thing — and a deeply unhelpful chatbot. Raw GPT-3 will happily continue your prompt by inventing a fictional Reddit thread or refusing to engage with the question entirely. Turning that machine into something useful takes a second training phase, with a very different objective.</div>
+
+    <!-- ============================================================== -->
+    <!-- PART 3 — ALIGNMENT                                              -->
+    <!-- ============================================================== -->
+
+    <div class="part-divider" id="part-3">
+      <div class="part-number">Part 3</div>
+      <h2 class="part-title" data-i18n="part3.title">From Raw Model to Helpful Assistant</h2>
+      <p class="part-tagline" data-i18n="part3.tag">SFT, RLHF, DPO, constitutional AI, and the reinforcement-learning-on-reasoning moment.</p>
+    </div>
+
+    <!-- §11 SFT + RLHF -->
+    <section class="section" id="sec-11">
+      <div class="sec-num">§ 11</div>
+      <h2 class="sec-title" data-i18n="sec11.title">SFT and RLHF: Teaching the Model What Humans Want</h2>
+
+      <p data-i18n="sec11.p1">Alignment starts simple. Take a few thousand to a few hundred thousand high-quality (prompt, ideal-response) pairs written by human annotators. Fine-tune the pretrained model on them with the same cross-entropy loss. This is <strong>supervised fine-tuning (SFT)</strong>, and it's enough to turn a base model into something that <em>tries</em> to answer questions instead of just continuing them.</p>
+
+      <p data-i18n="sec11.p2">SFT alone is brittle. Writing the perfect response for every prompt is expensive, and the model only learns to imitate, not to <em>prefer</em>. The 2022 InstructGPT paper introduced the now-standard fix: collect pairs of responses to the same prompt, ask humans which they prefer, and use those preferences to train a <strong>reward model</strong> that scores any (prompt, response). Then optimize the LLM to maximize that reward.</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec11.mathTitle">The Bradley-Terry reward + KL-constrained PPO</div>
+        <p data-i18n="sec11.mathP1">The reward model is fit with a Bradley-Terry likelihood: if response $y_w$ is preferred over $y_l$ given prompt $x$, then</p>
+        <div class="math-block">$$ p(y_w \succ y_l \mid x) = \sigma\!\left(r_\phi(x, y_w) - r_\phi(x, y_l)\right) $$</div>
+        <p data-i18n="sec11.mathP2">The LLM is then optimized with PPO against the reward, with a KL penalty keeping it close to the SFT model:</p>
+        <div class="math-block">$$ \max_\pi\, \mathbb{E}_{x \sim \mathcal{D},\, y \sim \pi}\!\left[ r_\phi(x, y) - \beta\, \text{KL}(\pi(\cdot \mid x) \,\|\, \pi_{\text{SFT}}(\cdot \mid x)) \right] $$</div>
+        <p class="plain-en" data-i18n="sec11.mathPlain">In English: produce responses humans rate well, but don't drift too far from the SFT-tuned distribution. The $\beta$-KL term is the leash. Without it, the model finds adversarial outputs that exploit the reward model and the conversation becomes nonsense. With it, you get ChatGPT.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz3_1.label">Figure 11.1 — The full RLHF pipeline: SFT → reward model → PPO</div>
+          <div id="viz3-1"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz3-1-step" data-i18n="viz3_1.step">Next stage →</button>
+            <button class="btn btn-ghost" id="viz3-1-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz3_1.caption">Three stages, three different objectives, all sharing weights. The thing that ships as "ChatGPT" or "Claude" or "Gemini" is the policy at the end of stage 3 — but stages 1 and 2 set the table.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §12 DPO -->
+    <section class="section" id="sec-12">
+      <div class="sec-num">§ 12</div>
+      <h2 class="sec-title" data-i18n="sec12.title">DPO: When the Reward Model Cancels Itself Out</h2>
+
+      <p data-i18n="sec12.p1">PPO is finicky. Training a separate reward model adds a moving target. Rafael Rafailov and co-authors at Stanford asked a beautiful question in 2023: <em>can we skip the reward model entirely and optimize the LLM directly on preference pairs?</em> The answer turned out to be yes, and the derivation is one of the prettiest pieces of math in modern ML.</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec12.mathTitle">The cancellation, line by line</div>
+        <p data-i18n="sec12.mathP1">Start from the closed-form solution to the KL-constrained objective. For any reward $r$, the optimal policy is</p>
+        <div class="math-block">$$ \pi^*(y \mid x) = \frac{1}{Z(x)}\, \pi_{\text{ref}}(y \mid x)\, \exp\!\left(\frac{r(x, y)}{\beta}\right) $$</div>
+        <p data-i18n="sec12.mathP2">Solve for $r$ in terms of $\pi^*$:</p>
+        <div class="math-block">$$ r(x, y) = \beta \log \frac{\pi^*(y \mid x)}{\pi_{\text{ref}}(y \mid x)} + \beta \log Z(x) $$</div>
+        <p data-i18n="sec12.mathP3">Plug this into the Bradley-Terry preference likelihood and notice that $\log Z(x)$ — which is intractable and depends on the prompt — appears as $r(x, y_w) - r(x, y_l)$, so it <em>cancels</em>. The final objective is</p>
+        <div class="math-block">$$ \mathcal{L}_{\text{DPO}} = -\log \sigma\!\left( \beta \log \frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta \log \frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)} \right) $$</div>
+        <p class="plain-en" data-i18n="sec12.mathPlain">Three things to read. No reward model. No reinforcement learning. Just a classification loss on preference pairs. The LLM is its own reward model — the log-ratio against the reference policy <em>is</em> the implicit reward. This is why DPO ate so much of RLHF's lunch in 2023–2024.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz3_2.label">Figure 12.1 — Walk through the DPO derivation, equation by equation</div>
+          <div id="viz3-2"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz3-2-next" data-i18n="viz3_2.next">Next step →</button>
+            <button class="btn btn-ghost" id="viz3-2-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz3_2.caption">The animation highlights where Z(x) appears in both terms and cancels in the difference. The remaining loss is a sigmoid over the log-ratio gap — supervised contrastive learning in disguise.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §13 Constitutional AI -->
+    <section class="section" id="sec-13">
+      <div class="sec-num">§ 13</div>
+      <h2 class="sec-title" data-i18n="sec13.title">Constitutional AI and RLAIF</h2>
+
+      <p data-i18n="sec13.p1">Human feedback is expensive. It's also inconsistent — annotators disagree, get tired, miss subtleties. Anthropic's 2022 Constitutional AI paper asked: what if we use the model itself to generate the preferences? Write down a short list of principles (the "constitution" — things like "don't be deceptive," "explain your reasoning"). Ask the model to critique its own response against the constitution, then revise. Use the (original, revised) pair as a preference for DPO or PPO.</p>
+
+      <p data-i18n="sec13.p2">This is <strong>RLAIF</strong> — reinforcement learning from AI feedback — and it scales in ways human feedback can't. You can generate millions of preference pairs for the cost of inference, not hundreds of thousands for the cost of annotation. The catch is that the constitution has to be carefully written, and the model's self-critiques inherit any biases the model already has. The technique is now standard for "harmlessness" training across Anthropic, Google, and many open-source labs.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz3_3.label">Figure 13.1 — The constitutional self-critique loop</div>
+          <div id="viz3-3"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz3-3-play" data-i18n="viz.play">▶ Run the loop</button>
+            <button class="btn btn-ghost" id="viz3-3-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz3_3.caption">Prompt → initial response → constitutional critique → revised response. The (initial, revised) pair becomes a training signal. Run a few rounds and the model internalizes the constitution without explicit gradient updates.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §14 Reasoning models -->
+    <section class="section" id="sec-14">
+      <div class="sec-num">§ 14</div>
+      <h2 class="sec-title" data-i18n="sec14.title">Reasoning Models: o1, R1, and Reinforcement Learning on Chains of Thought</h2>
+
+      <p data-i18n="sec14.p1">In September 2024 OpenAI released o1, a model that, before responding, generates a long internal chain of thought — often thousands of tokens — that the user never sees. Benchmark scores on competition math and code jumped by margins that previous "make the model bigger" releases hadn't produced. The mechanism was reinforcement learning, but not the RLHF kind. The reward signal was <em>correctness</em>, checkable against ground truth on math and code problems.</p>
+
+      <p data-i18n="sec14.p2">DeepSeek's R1 (January 2026) opened the recipe. The key algorithm — <strong>GRPO</strong> (Group Relative Policy Optimization) — is a PPO variant that drops the separate value network. For each prompt, sample $G$ responses, compute their rewards, and use the group's mean reward as the baseline. The advantage for response $i$ is simply $A_i = r_i - \bar{r}$. No critic, no reward model, just relative ranking inside each batch.</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec14.mathTitle">GRPO in three lines</div>
+        <div class="math-block">$$ A_i = \frac{r_i - \text{mean}(r_1, \dots, r_G)}{\text{std}(r_1, \dots, r_G)} $$</div>
+        <div class="math-block">$$ \mathcal{L}_{\text{GRPO}} = -\mathbb{E}\!\left[ \min\!\left(\rho_i A_i,\, \text{clip}(\rho_i, 1-\epsilon, 1+\epsilon) A_i\right) \right] + \beta \text{KL}(\pi \| \pi_{\text{ref}}) $$</div>
+        <div class="math-block">$$ \rho_i = \frac{\pi_\theta(y_i \mid x)}{\pi_{\text{old}}(y_i \mid x)} $$</div>
+        <p class="plain-en" data-i18n="sec14.mathPlain">The clip-min is standard PPO. The interesting bit is that the baseline is computed from siblings, not a learned value function. This halves the memory cost and removes a major source of training instability. R1's whole training run is essentially this loss + a math-correctness reward, applied to a base model that already had decent CoT.</p>
+      </div>
+
+      <p data-i18n="sec14.p3">The bigger story: o1 and R1 demonstrated that <strong>inference-time compute is a new scaling axis</strong>. Letting a model think for 30 seconds instead of 1 second improves accuracy on hard problems in ways that just making the model bigger doesn't. The 2025–2026 generation of frontier models — Claude 3.7, GPT-5, Gemini 2.5, Qwen3 — all ship with this "extended thinking" mode now standard.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz3_4.label">Figure 14.1 — GRPO group sampling: 8 responses, 1 reward, 8 advantages</div>
+          <div id="viz3-4"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz3-4-play" data-i18n="viz.play">▶ Run an RL step</button>
+            <button class="btn btn-ghost" id="viz3-4-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz3_4.caption">For one math problem, sample 8 chains of thought. Two reach the right answer, six don't. The advantage for each is its z-scored deviation from the group mean. Update the policy to upweight the winners. Repeat for a million problems.</figcaption>
+      </figure>
+    </section>
+
+    <div class="section-bridge" data-i18n="bridge.toPart4">A trained, aligned, reasoning model is the user-facing product. But behind every chat box is a serving stack working frantically to make the math feasible. Part 4 is about the engineering tricks — MoE, KV cache compression, FlashAttention, quantization — that let a 600-billion-parameter model answer in under a second.</div>
+
+    <!-- ============================================================== -->
+    <!-- PART 4 — EFFICIENCY                                              -->
+    <!-- ============================================================== -->
+
+    <div class="part-divider" id="part-4">
+      <div class="part-number">Part 4</div>
+      <h2 class="part-title" data-i18n="part4.title">Building the Big Machine: Efficiency</h2>
+      <p class="part-tagline" data-i18n="part4.tag">Mixture of experts, KV cache crunch, FlashAttention, quantization, and LoRA.</p>
+    </div>
+
+    <!-- §15 MoE -->
+    <section class="section" id="sec-15">
+      <div class="sec-num">§ 15</div>
+      <h2 class="sec-title" data-i18n="sec15.title">Mixture of Experts: Sparse Activation</h2>
+
+      <p data-i18n="sec15.p1">Naive scaling says: to get a better model, multiply every weight you have. <strong>Mixture of Experts (MoE)</strong> says: keep most of the weights, but use only a fraction of them for any given token. Replace each FFN in the Transformer with $N$ parallel FFNs ("experts") and a small <em>router</em> network that picks the top-$k$ experts for each token. A 600-billion-parameter MoE with $k = 2$ experts active runs at roughly the cost of a 40B dense model, while having access to far more learned knowledge.</p>
+
+      <p data-i18n="sec15.p2">The router is the only new piece. For each token, it outputs $N$ logits, softmaxes them, and routes to the top-$k$. The chosen experts' outputs are weighted by their router probabilities and summed. The trick is keeping the load balanced — without auxiliary losses, the router collapses to one or two favorite experts, and the rest are dead weight.</p>
+
+      <div class="callout callout-primer">
+        <div class="callout-title" data-i18n="sec15.primerTitle">DeepSeek's fine-grained design</div>
+        <p data-i18n="sec15.primerP">DeepSeek-V3 (Dec 2024) pushed the design to its current shape: 256 experts per layer instead of 8 or 16, with $k = 8$ active per token, and a handful of "shared experts" that always activate to handle common patterns. The intuition is that fine-grained specialization lets each expert focus on a narrower distribution, while the shared experts soak up the high-frequency baseline. The result was 671B total parameters at 37B active — frontier quality at sub-100B compute cost.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz4_1.label">Figure 15.1 — Watch the router pick experts for each token in a sentence</div>
+          <div id="viz4-1"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz4-1-play" data-i18n="viz.play">▶ Route this sentence</button>
+            <button class="btn btn-ghost" id="viz4-1-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz4_1.caption">Each token's color shows which expert(s) the router chose. Specialization is emergent — one expert may concentrate on punctuation, another on numbers, another on Chinese characters. The auxiliary load-balancing loss keeps utilization roughly uniform across experts.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §16 KV cache MQA/GQA/MLA -->
+    <section class="section" id="sec-16">
+      <div class="sec-num">§ 16</div>
+      <h2 class="sec-title" data-i18n="sec16.title">The KV Cache Crunch: MQA → GQA → MLA</h2>
+
+      <p data-i18n="sec16.p1">At inference, every previously-generated token's key and value vectors get cached so we don't re-compute them on every step. This <strong>KV cache</strong> is enormous: for a 70B model with a 128K context, it can take tens of gigabytes per request. Long-context serving lives and dies on shrinking it.</p>
+
+      <p data-i18n="sec16.p2">Three generations of fixes, each chopping the cache further:</p>
+
+      <ul class="readable-list">
+        <li data-i18n="sec16.s1"><strong>Multi-Query Attention (MQA).</strong> Use one shared key and one shared value across all attention heads in a layer (the query is still per-head). The KV cache shrinks by a factor of $h$ (the number of heads). Quality drops a hair, but speed improves dramatically.</li>
+        <li data-i18n="sec16.s2"><strong>Grouped-Query Attention (GQA).</strong> The middle ground: share K and V across <em>groups</em> of heads (say 8 groups of 4 heads each). LLaMA 2/3, Mistral, and most open-source models use GQA. The cache shrinks by 4×–8× while preserving most of the quality.</li>
+        <li data-i18n="sec16.s3"><strong>Multi-head Latent Attention (MLA).</strong> DeepSeek's 2024 trick: compress K and V down to a small latent vector ($\approx 1/16$ the dim) before caching, and reconstruct on the fly. Cache shrinks an order of magnitude further, with quality at parity with full MHA.</li>
+      </ul>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz4_2.label">Figure 16.1 — Side-by-side: MHA vs. GQA vs. MLA cache footprints</div>
+          <div id="viz4-2" class="dual-viz"></div>
+          <div class="viz-controls">
+            <label class="slider-label">
+              <span data-i18n="viz4_2.ctx">context length</span>
+              <input type="range" id="viz4-2-ctx" min="1000" max="128000" value="8000">
+            </label>
+          </div>
+        </div>
+        <figcaption data-i18n="viz4_2.caption">For the same model dimension and head count, plot KV cache size vs. context. MHA grows linearly with d·h·L. GQA is d·g·L (g groups). MLA is d_latent·L — an order of magnitude smaller across the board.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §17 FlashAttention -->
+    <section class="section" id="sec-17">
+      <div class="sec-num">§ 17</div>
+      <h2 class="sec-title" data-i18n="sec17.title">FlashAttention: The Online Softmax</h2>
+
+      <p data-i18n="sec17.p1">A naive attention implementation materializes the full $n \times n$ score matrix $QK^\top$ in GPU memory. For $n = 32{,}000$, that's a 1-billion-entry matrix per head per layer. The memory traffic, not the compute, is the bottleneck — and most of those numbers get read once, softmaxed, and immediately consumed.</p>
+
+      <p data-i18n="sec17.p2">Tri Dao's 2022 FlashAttention paper rewrote the kernel to never materialize the score matrix at all. The trick is an <strong>online softmax</strong>: process queries and keys in small tiles that fit in fast on-chip SRAM, maintain running max and sum statistics, and rescale partial outputs as new tiles arrive. The math is exact — no approximation — but the memory access pattern is fundamentally different. The result is a 2–4× speedup and the ability to fit much longer contexts on the same hardware.</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec17.mathTitle">Online softmax, in two lines</div>
+        <p data-i18n="sec17.mathP1">Standard softmax needs all the logits at once to find the max. The online version keeps a running max $m$ and sum $\ell$ and updates them tile by tile:</p>
+        <div class="math-block">$$ m^{\text{new}} = \max(m^{\text{old}}, m_{\text{tile}}),\quad \ell^{\text{new}} = e^{m^{\text{old}} - m^{\text{new}}}\ell^{\text{old}} + e^{m_{\text{tile}} - m^{\text{new}}} \ell_{\text{tile}} $$</div>
+        <p class="plain-en" data-i18n="sec17.mathPlain">The output is rescaled as the running max changes — the rescale factor is just $e^{m^{\text{old}} - m^{\text{new}}}$. After processing all tiles, the result is bit-for-bit identical to standard softmax. FlashAttention-2 and -3 refined the tiling, pipelining, and hardware utilization further; the basic idea is what won.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz4_3.label">Figure 17.1 — FlashAttention tiling: SRAM vs. HBM traffic visualized</div>
+          <div id="viz4-3"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz4-3-play" data-i18n="viz.play">▶ Play one head</button>
+            <button class="btn btn-ghost" id="viz4-3-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz4_3.caption">The Q/K/V matrices are streamed in tiles from HBM into SRAM. Each tile is multiplied, softmax statistics updated, and the partial output written back. The full score matrix never lives in memory.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §18 Quantization -->
+    <section class="section" id="sec-18">
+      <div class="sec-num">§ 18</div>
+      <h2 class="sec-title" data-i18n="sec18.title">Quantization: FP16 → FP8 → FP4</h2>
+
+      <p data-i18n="sec18.p1">A 70-billion-parameter model in FP16 takes 140 GB of memory. In FP8 it takes 70. In FP4 it takes 35 and can fit on a single H100. The catch is that each step down compresses each weight into a smaller numeric format with less dynamic range, and naive rounding destroys quality. The art of quantization is choosing what to round, where, and with how much side information.</p>
+
+      <p data-i18n="sec18.p2">Three families: <strong>post-training quantization</strong> (PTQ) rounds the weights of a finished model — GPTQ, AWQ, and SmoothQuant all live here. <strong>Quantization-aware training</strong> (QAT) trains the model with quantization noise injected, producing weights that round cleanly. <strong>Mixed-precision inference</strong> keeps activations in higher precision while compressing the weights, which is the practical sweet spot on current hardware.</p>
+
+      <p data-i18n="sec18.p3">DeepSeek-V3's choice — <strong>FP8 per-block</strong> quantization with FP32 accumulation — is the current frontier-scale default. Group the weights into 128-element blocks, store each block with its own scale factor, do all matmuls in FP8, accumulate the partial sums in FP32. Quality loss vs. BF16: under 0.5% on most benchmarks. Memory savings: 2×. Throughput on H100/H800: roughly 2× as well.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz4_4.label">Figure 18.1 — Hover a weight value; see its FP16/FP8/FP4 representation</div>
+          <div id="viz4-4"></div>
+          <div class="viz-controls">
+            <label class="slider-label">
+              <span data-i18n="viz4_4.precision">precision</span>
+              <select id="viz4-4-precision">
+                <option value="fp16">FP16</option>
+                <option value="fp8">FP8</option>
+                <option value="fp4">FP4</option>
+                <option value="int8">INT8</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <figcaption data-i18n="viz4_4.caption">The histogram shows the distribution of weight values before and after quantization. FP8 keeps the long tail. FP4 truncates it, but with per-block scales the loss is recoverable.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §19 LoRA -->
+    <section class="section" id="sec-19">
+      <div class="sec-num">§ 19</div>
+      <h2 class="sec-title" data-i18n="sec19.title">LoRA: Fine-Tune by Adding a Tiny Rank-r Patch</h2>
+
+      <p data-i18n="sec19.p1">Full fine-tuning a 70B model means updating 70 billion parameters — expensive to train, expensive to store (you have a separate 140 GB checkpoint per task), and impossible to swap quickly at inference. <strong>LoRA</strong> (Low-Rank Adaptation, 2021) does something cleaner. Freeze the base weight matrix $W$ and learn a low-rank update $\Delta W = BA$ where $B \in \mathbb{R}^{d \times r}$ and $A \in \mathbb{R}^{r \times d}$ with $r \ll d$. At inference, $W + BA$ is the effective weight.</p>
+
+      <p data-i18n="sec19.p2">For $r = 8$ and $d = 4096$, each LoRA update is roughly $2 \cdot 8 \cdot 4096 \approx 66{,}000$ parameters — versus 16 million for the full $W$. A 70B base model with a 50 MB LoRA adapter behaves like a custom fine-tune. You can keep dozens of adapters in memory and hot-swap them per request, which is exactly what services like RunPod and Together do.</p>
+
+      <div class="callout callout-intuition">
+        <div class="callout-title" data-i18n="sec19.intuTitle">Why low rank is enough</div>
+        <p data-i18n="sec19.intuP">Empirically, the task-specific changes a fine-tune wants to make are highly correlated — they don't span the full $d \times d$ space of possible weight updates. Eight to thirty-two effective degrees of freedom per matrix is usually plenty. The reason this works at all is that the base model has already done most of the heavy lifting; fine-tuning is a small perturbation in a particular direction, and you only need rank $r$ to capture it.</p>
+      </div>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz4_5.label">Figure 19.1 — LoRA decomposition: W + BA visualized</div>
+          <div id="viz4-5"></div>
+          <div class="viz-controls">
+            <label class="slider-label">
+              <span data-i18n="viz4_5.rank">rank r = </span><span id="viz4-5-rval">8</span>
+              <input type="range" id="viz4-5-r" min="1" max="64" value="8">
+            </label>
+          </div>
+        </div>
+        <figcaption data-i18n="viz4_5.caption">The base W matrix is frozen (grey). The two skinny matrices B and A are learned. Their product is added back into W at inference. As r grows, parameter count grows linearly and approaches full fine-tune behavior.</figcaption>
+      </figure>
+    </section>
+
+    <div class="section-bridge" data-i18n="bridge.toPart5">Efficient compute is one bottleneck. The other is memory — how the model holds long documents, how it brings in external knowledge, how it sees images and audio. Part 5 walks through what happens when an LLM has to remember more than fits in its weights.</div>
+
+    <!-- ============================================================== -->
+    <!-- PART 5 — MEMORY & MODALITY                                      -->
+    <!-- ============================================================== -->
+
+    <div class="part-divider" id="part-5">
+      <div class="part-number">Part 5</div>
+      <h2 class="part-title" data-i18n="part5.title">Memory and Modality</h2>
+      <p class="part-tagline" data-i18n="part5.tag">RoPE in full, long-context tricks, retrieval-augmented generation, multimodal LLMs.</p>
+    </div>
+
+    <!-- §20 RoPE -->
+    <section class="section" id="sec-20">
+      <div class="sec-num">§ 20</div>
+      <h2 class="sec-title" data-i18n="sec20.title">RoPE in Full: Why Rotations Give You Relative Positions</h2>
+
+      <p data-i18n="sec20.p1">We saw RoPE briefly in §4. Now the derivation. Pair up the dimensions of $Q$ and $K$ into 2D subspaces. For each pair, treat them as a complex number, and multiply by $e^{i\theta m}$ where $m$ is the position and $\theta$ is a frequency that varies across pairs. Concretely, for query at position $m$ and key at position $n$, define</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec20.mathTitle">The full RoPE construction</div>
+        <div class="math-block">$$ R_\Theta^m = \begin{pmatrix} \cos m\theta_1 & -\sin m\theta_1 & & \\ \sin m\theta_1 & \cos m\theta_1 & & \\ & & \ddots & \\ & & & \cos m\theta_{d/2} & -\sin m\theta_{d/2} \\ & & & \sin m\theta_{d/2} & \cos m\theta_{d/2} \end{pmatrix} $$</div>
+        <p data-i18n="sec20.mathP1">with $\theta_i = 10000^{-2(i-1)/d}$ — a geometric sequence of frequencies. Then</p>
+        <div class="math-block">$$ (R_\Theta^m Q)^\top (R_\Theta^n K) = Q^\top R_\Theta^{n-m} K $$</div>
+        <p class="plain-en" data-i18n="sec20.mathPlain">The key identity: the dot product between rotated query and rotated key depends only on the <em>difference</em> $n - m$. So absolute position is encoded multiplicatively, but the inner product reads only relative position. The model never has to learn what "position 47" means; it learns what "12 tokens apart" means.</p>
+      </div>
+
+      <p data-i18n="sec20.p2">This is the trick that lets context windows grow. To support a longer context than the model was trained on, you can simply tweak the base frequency — multiply $\theta_i$ by a constant — and the same weights extrapolate cleanly. The tricks that do this are called <strong>position interpolation</strong> and <strong>YaRN</strong>, and the next section is about them.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz5_1.label">Figure 20.1 — Watch a Q/K pair rotate as position increases</div>
+          <div id="viz5-1"></div>
+          <div class="viz-controls">
+            <label class="slider-label">
+              <span data-i18n="viz5_1.pos">position m = </span><span id="viz5-1-pval">0</span>
+              <input type="range" id="viz5-1-pos" min="0" max="2048" value="0">
+            </label>
+          </div>
+        </div>
+        <figcaption data-i18n="viz5_1.caption">Each 2D pair rotates at its own frequency. Low-index pairs rotate fast (encode local position); high-index pairs rotate slowly (encode global position). The relative-position property emerges from how rotations compose.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §21 Long context -->
+    <section class="section" id="sec-21">
+      <div class="sec-num">§ 21</div>
+      <h2 class="sec-title" data-i18n="sec21.title">Long Context: YaRN, Ring Attention, Attention Sinks</h2>
+
+      <p data-i18n="sec21.p1">A model trained on 4K context that's asked to process 32K typically falls off a cliff — perplexity explodes near the boundary. The fix is a handful of clever interventions, none of which require retraining from scratch.</p>
+
+      <ul class="readable-list">
+        <li data-i18n="sec21.s1"><strong>Position interpolation</strong> (Chen et al., 2023). Squeeze the inference positions into the trained range: when serving 32K with a 4K-trained model, multiply positions by 4K/32K. Quality recovers with about 1,000 fine-tuning steps.</li>
+        <li data-i18n="sec21.s2"><strong>YaRN</strong> (2023). A smarter interpolation that scales high-frequency RoPE pairs differently from low-frequency ones. Pushes context to 128K with almost no fine-tuning. This is the trick behind most "we extended our context to 1M" announcements.</li>
+        <li data-i18n="sec21.s3"><strong>Ring Attention</strong> (Liu et al., 2023). At training/serving time, shard the sequence across multiple GPUs and pass K/V blocks around the ring. Memory per GPU stays constant; total context scales with the ring size. This is how Gemini gets to 2M tokens.</li>
+        <li data-i18n="sec21.s4"><strong>Attention sinks</strong> (Xiao et al., 2023). At very long context, evict everything except the first few tokens ("sinks") and a sliding window near the present. The sinks anchor the softmax distribution and prevent the well-known "fall off after eviction" failure.</li>
+      </ul>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz5_2.label">Figure 21.1 — Compare four long-context strategies on a "needle in a haystack" probe</div>
+          <div id="viz5-2"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz5-2-play" data-i18n="viz.play">▶ Run probe</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz5_2.caption">The "needle" is a random fact placed at varying depths in a long context. Strategies are scored on retrieval accuracy. Vanilla extrapolation degrades sharply past the training length; YaRN and Ring Attention hold up to ~100K and ~1M respectively.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §22 RAG -->
+    <section class="section" id="sec-22">
+      <div class="sec-num">§ 22</div>
+      <h2 class="sec-title" data-i18n="sec22.title">Retrieval-Augmented Generation</h2>
+
+      <p data-i18n="sec22.p1">Long context is one way to give a model more information. Retrieval is the other — and often cheaper. Instead of stuffing 100K tokens of documents into the prompt, store the documents as embeddings in a vector database, embed the query, retrieve the top-$k$ most similar chunks, and put only those in the context. The model now answers from whatever 10 KB of text was relevant, rather than 1 MB of background.</p>
+
+      <div class="callout callout-primer">
+        <div class="callout-title" data-i18n="sec22.primerTitle">Why retrieval is more than a cost optimization</div>
+        <p data-i18n="sec22.primerP">A model trained in 2024 doesn't know what happened in 2026. Retrieval is the obvious patch: keep the model frozen, swap out the index. It also gives you <em>citations</em> — you know exactly which document the answer is grounded in — and lets enterprises plug in private knowledge (legal filings, codebases, internal wikis) without re-training. RAG is now a default pattern for almost every production LLM deployment.</p>
+      </div>
+
+      <p data-i18n="sec22.p2">The vector database is the unsung hero. Modern systems (Qdrant, Pinecone, Weaviate, pgvector) index millions of $d$-dimensional embeddings with HNSW or IVF-PQ structures that retrieve the top-$k$ nearest neighbors in milliseconds. Hybrid retrieval — combining vector similarity with traditional BM25 keyword search — outperforms either alone on most real workloads.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz5_3.label">Figure 22.1 — Trace a RAG query end-to-end: embed → search → context → generate</div>
+          <div id="viz5-3"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz5-3-step" data-i18n="viz5_3.step">Next stage →</button>
+            <button class="btn btn-ghost" id="viz5-3-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz5_3.caption">User question → query embedding → top-k chunk retrieval → prompt assembly → generation. The retrieval step is the one new piece; the generation is just a normal LLM call with a longer prompt.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §23 Multimodal -->
+    <section class="section" id="sec-23">
+      <div class="sec-num">§ 23</div>
+      <h2 class="sec-title" data-i18n="sec23.title">Multimodal: CLIP, Vision Encoders, and Native Multimodal LLMs</h2>
+
+      <p data-i18n="sec23.p1">An LLM can only consume tokens. To process an image, you need a way to convert pixels into vectors that live in the same space as text embeddings. The breakthrough recipe was <strong>CLIP</strong> (OpenAI, 2021): train an image encoder and a text encoder jointly, with a contrastive objective that pulls matching (image, caption) pairs together and pushes mismatched pairs apart.</p>
+
+      <div class="callout callout-math">
+        <div class="callout-title" data-i18n="sec23.mathTitle">CLIP's symmetric contrastive loss</div>
+        <div class="math-block">$$ \mathcal{L} = -\frac{1}{2N} \sum_{i=1}^{N} \left( \log \frac{\exp(s_{ii}/\tau)}{\sum_j \exp(s_{ij}/\tau)} + \log \frac{\exp(s_{ii}/\tau)}{\sum_j \exp(s_{ji}/\tau)} \right) $$</div>
+        <p class="plain-en" data-i18n="sec23.mathPlain">$s_{ij}$ is the cosine similarity between the $i$-th image embedding and the $j$-th text embedding. The loss is symmetric — both image-to-text and text-to-image classification. After training on 400 million image-caption pairs, the two encoders' outputs live in a shared 512-dim space where an image of a cat is close to the embedding of the word "cat."</p>
+      </div>
+
+      <p data-i18n="sec23.p2">Modern multimodal LLMs (GPT-4o, Gemini, Claude) take CLIP's vision encoder and bolt it onto an LLM via a small adapter. Image → vision encoder → patches → adapter → "image tokens" that the LLM consumes alongside text tokens. The newest "natively multimodal" models train the whole stack jointly on text + images + audio from scratch, which produces cleaner cross-modal reasoning than the bolted-on variants.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz5_4.label">Figure 23.1 — CLIP contrastive training, batch of 8</div>
+          <div id="viz5-4"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz5-4-step" data-i18n="viz5_4.step">Next batch →</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz5_4.caption">An 8×8 similarity matrix between image embeddings (rows) and text embeddings (columns). The diagonal should be brightest — those are the true matches. Off-diagonal cells are negatives that the loss pushes down.</figcaption>
+      </figure>
+    </section>
+
+    <div class="section-bridge" data-i18n="bridge.toPart6">The 2026 frontier isn't just bigger Transformers. It's architectural challengers (Mamba, diffusion text), agents that call tools, and the question of what comes after pretraining when there's no more text to read. Part 6 surveys the open questions.</div>
+
+    <!-- ============================================================== -->
+    <!-- PART 6 — FRONTIER                                                -->
+    <!-- ============================================================== -->
+
+    <div class="part-divider" id="part-6">
+      <div class="part-number">Part 6</div>
+      <h2 class="part-title" data-i18n="part6.title">The Frontier</h2>
+      <p class="part-tagline" data-i18n="part6.tag">Mamba, diffusion LMs, agents, and what comes after pretraining.</p>
+    </div>
+
+    <!-- §24 Mamba -->
+    <section class="section" id="sec-24">
+      <div class="sec-num">§ 24</div>
+      <h2 class="sec-title" data-i18n="sec24.title">Architectural Challengers: Mamba and State Space Models</h2>
+
+      <p data-i18n="sec24.p1">Attention is $O(n^2)$ in sequence length. For million-token contexts, that's not just expensive — it's a wall. <strong>State space models (SSMs)</strong> compute a sequence in $O(n)$ time by maintaining a recurrent hidden state, like an RNN but with a continuous-time interpretation that makes them stable to train.</p>
+
+      <p data-i18n="sec24.p2">Mamba (2023) is the SSM variant that finally caught on. It uses a <em>selective</em> SSM where the recurrence parameters depend on the input, giving it the ability to selectively remember or forget — something vanilla SSMs couldn't do. Mamba matches Transformer perplexity on language at moderate scale and runs faster at long context.</p>
+
+      <p data-i18n="sec24.p3">As of 2026, hybrid architectures — most layers are Transformer, a few are Mamba — are emerging as the practical sweet spot. Jamba (AI21) and Zamba (Zyphra) are public examples. Pure Mamba models exist but haven't reached frontier scale.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz6_1.label">Figure 24.1 — Mamba's selective scan: state evolution through a sequence</div>
+          <div id="viz6-1"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz6-1-play" data-i18n="viz.play">▶ Scan</button>
+            <button class="btn btn-ghost" id="viz6-1-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz6_1.caption">The hidden state h_t evolves linearly: h_t = A·h_{t-1} + B·x_t. In Mamba, A and B depend on x_t, giving the model a "soft gate" on memory. Plotted is the magnitude of h over time as the model processes a sentence.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §25 Diffusion LMs -->
+    <section class="section" id="sec-25">
+      <div class="sec-num">§ 25</div>
+      <h2 class="sec-title" data-i18n="sec25.title">Diffusion Language Models — A Companion Universe</h2>
+
+      <p data-i18n="sec25.p1">Almost every model on this page generates text left-to-right, one token at a time. There is another way. Diffusion language models start with a sequence of <code>[MASK]</code> tokens and progressively fill them in, deciding many positions in parallel each step. Gemini Diffusion (Google DeepMind, 2025) and the LLaDA family (Ant Group, 2025–2026) show this paradigm at frontier quality. The trade-offs are real: faster inference, bidirectional context, harder training. If this section piqued your interest, the <a href="https://github.com/linroger/how-diffusion-llms-work" target="_blank" rel="noopener">companion diffusion-LM site</a> covers it in the same depth as this one.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz6_2.label">Figure 25.1 — AR generation vs. diffusion decoding of the same sentence</div>
+          <div id="viz6-2" class="dual-viz"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz6-2-play" data-i18n="viz.play">▶ Play both</button>
+            <button class="btn btn-ghost" id="viz6-2-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz6_2.caption">Left: AR emits one token per step, 12 steps for 12 tokens. Right: diffusion commits multiple positions per step, finishing in 4 steps. Same final sentence; very different paths.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §26 Agents -->
+    <section class="section" id="sec-26">
+      <div class="sec-num">§ 26</div>
+      <h2 class="sec-title" data-i18n="sec26.title">Agents, Tools, and the Model Context Protocol</h2>
+
+      <p data-i18n="sec26.p1">An LLM by itself is a text-in, text-out function. An <strong>agent</strong> is what you get when you wrap that function in a loop, give it access to <em>tools</em> (search the web, run code, query a database, send an email), and let it pick which tool to call next based on its own output.</p>
+
+      <p data-i18n="sec26.p2">The pattern is essentially universal across providers. The model emits a structured "tool call" — JSON specifying which function to invoke and with what arguments. The orchestrator executes the call, formats the result as a new message, and feeds it back. Repeat until the model emits a final answer without a tool call. ChatGPT's "search the web" button, Claude's code execution, Cursor's file edits — all instances.</p>
+
+      <p data-i18n="sec26.p3">Anthropic's <strong>Model Context Protocol</strong> (MCP, late 2024) is an attempt to standardize the wiring. Any MCP server exposes a list of tools, resources, and prompts; any MCP-aware client can plug in and use them. The hope is to avoid the M×N problem where every LLM has to integrate every tool individually.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz6_3.label">Figure 26.1 — An agent loop: plan → call → observe → continue</div>
+          <div id="viz6-3"></div>
+          <div class="viz-controls">
+            <button class="btn" id="viz6-3-play" data-i18n="viz.play">▶ Run loop</button>
+            <button class="btn btn-ghost" id="viz6-3-reset" data-i18n="viz.reset">↺ Reset</button>
+          </div>
+        </div>
+        <figcaption data-i18n="viz6_3.caption">The agent decomposes a user request, calls tools, observes results, and decides whether to continue. The model is the planner; the orchestrator is the executor. Most production agents loop 3–10 times per user message.</figcaption>
+      </figure>
+    </section>
+
+    <!-- §27 What's next -->
+    <section class="section" id="sec-27">
+      <div class="sec-num">§ 27</div>
+      <h2 class="sec-title" data-i18n="sec27.title">What's Next: The Post-Pretraining Playbook</h2>
+
+      <p data-i18n="sec27.p1">There's a recurring rumor that pretraining has hit a wall. Empirically: the high-quality public text web is roughly 15 trillion tokens, and the frontier labs are already there. You can't 10× the corpus by scraping harder. The interesting question for 2026 and beyond is what scales <em>instead</em>.</p>
+
+      <p data-i18n="sec27.p2">Three credible axes have emerged. <strong>Inference-time compute</strong> — letting the model think longer per query (o1, R1) — scales accuracy on hard problems where pretraining alone is plateauing. <strong>Synthetic data</strong> — having a strong model generate training data for a weaker one — extends the corpus, with the obvious risk of feedback loops. <strong>Reinforcement learning on verifiable rewards</strong> — math, code, simulated environments — sidesteps the "preferences are noisy" problem of RLHF entirely.</p>
+
+      <p data-i18n="sec27.p3">The shape of the next-generation frontier model is still being argued. But the components on this page — Transformers, attention, MoE, RLHF, RoPE, retrieval, agents — are durable. Whatever comes next will be built on top of them, not in opposition to them.</p>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz6_4.label">Figure 27.1 — The 2017–2026 timeline of milestones</div>
+          <div id="viz6-4" class="dm-timeline"></div>
+        </div>
+        <figcaption data-i18n="viz6_4.caption">Nine years from "Attention Is All You Need" to MCP-equipped reasoning agents. The path was not linear, but in retrospect every step was a recombination of pieces that had been sitting on the shelf for a while.</figcaption>
+      </figure>
+
+      <figure class="viz-figure">
+        <div class="viz-frame">
+          <div class="viz-label" data-i18n="viz6_5.label">Figure 27.2 — The modern post-pretraining playbook, stage by stage</div>
+          <div id="viz6-5"></div>
+        </div>
+        <figcaption data-i18n="viz6_5.caption">A base model becomes a useful assistant by passing through six post-training stages. Watch each capability score climb as the model accumulates SFT, RLVR, preference alignment, safety RL, and tool-use training. The "thinking budget" knob — the new control surface of 2025 — appears only once the model is deployed.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===== Summary ===== -->
+    <section class="section" id="sec-summary">
+      <div class="sec-num">§</div>
+      <h2 class="sec-title" data-i18n="summary.title">Three Things to Remember</h2>
+
+      <p data-i18n="summary.intro">If you take only three things from this page, take these.</p>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-num">1</div>
+          <div class="summary-body">
+            <div class="summary-h" data-i18n="summary.h1">Attention is a soft dictionary lookup, stacked.</div>
+            <p data-i18n="summary.p1">Every capability in this page traces back to one operation: for each token, compute a probability-weighted blend of every other token's value, where the weights come from query-key dot products. Multi-head attention, MoE, MLA, RoPE — all variations on that theme. Once the central operation is internalized, the architecture stops looking like a black box.</p>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-num">2</div>
+          <div class="summary-body">
+            <div class="summary-h" data-i18n="summary.h2">Pretraining produces a world model by accident.</div>
+            <p data-i18n="summary.p2">Nothing about next-token prediction implies the model has to learn geography, arithmetic, syntax, or chess. It does anyway, because predicting text on a sufficiently diverse corpus requires modeling whatever produced the text. Most of the surprise of the past five years is downstream of this one observation.</p>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-num">3</div>
+          <div class="summary-body">
+            <div class="summary-h" data-i18n="summary.h3">Alignment, efficiency, and reasoning are now first-class.</div>
+            <p data-i18n="summary.p3">A raw pretrained model is no longer the product. RLHF turned it into an assistant; DPO simplified the recipe; GRPO and reasoning-RL turned it into a problem-solver; MoE and MLA made it cheap to serve. The frontier moves on all four axes simultaneously, and improvements compound.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-intuition">
+        <div class="callout-title" data-i18n="summary.finalTitle">One final image</div>
+        <p data-i18n="summary.finalP1">A language model is a function that turns one sequence of integers into a probability distribution over the next integer. Every other adjective people attach — "intelligent," "creative," "reasoning" — is downstream of how good that function is and how cleverly you wrap a loop around it.</p>
+        <p data-i18n="summary.finalP2">The function is a Transformer. The wrapping is everything from greedy decoding to multi-turn agentic loops calling tools across the internet. The boundary between "the model" and "the system" has been moving outward steadily since 2022, and it's still moving.</p>
+        <p data-i18n="summary.finalP3">If you've read this far, you know enough to follow the next move when it happens. That's the goal.</p>
+      </div>
+    </section>
+
+    <!-- ===== Sources ===== -->
+    <section class="section sources-section" id="sources">
+      <div class="sec-num">§</div>
+      <h2 class="sec-title" data-i18n="sources.title">Sources and further reading</h2>
+      <p data-i18n="sources.intro">Everything on this page is grounded in primary sources. Click through to the originals.</p>
+
+      <div class="sources-grid">
+        <div class="sources-col">
+          <h3 data-i18n="sources.foundations">Foundations</h3>
+          <ul>
+            <li><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Attention Is All You Need — Vaswani et al., 2017</a></li>
+            <li><a href="https://arxiv.org/abs/1810.04805" target="_blank" rel="noopener">BERT — Devlin et al., 2018</a></li>
+            <li><a href="https://arxiv.org/abs/1301.3781" target="_blank" rel="noopener">word2vec — Mikolov et al., 2013</a></li>
+            <li><a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener">RoFormer / RoPE — Su et al., 2021</a></li>
+            <li><a href="https://arxiv.org/abs/1910.07467" target="_blank" rel="noopener">RMSNorm — Zhang & Sennrich, 2019</a></li>
+          </ul>
+        </div>
+        <div class="sources-col">
+          <h3 data-i18n="sources.scaling">Scaling</h3>
+          <ul>
+            <li><a href="https://arxiv.org/abs/2005.14165" target="_blank" rel="noopener">GPT-3 — Brown et al., 2020</a></li>
+            <li><a href="https://arxiv.org/abs/2001.08361" target="_blank" rel="noopener">Kaplan scaling laws — 2020</a></li>
+            <li><a href="https://arxiv.org/abs/2203.15556" target="_blank" rel="noopener">Chinchilla — Hoffmann et al., 2022</a></li>
+            <li><a href="https://arxiv.org/abs/2206.07682" target="_blank" rel="noopener">Emergent Abilities — Wei et al., 2022</a></li>
+            <li><a href="https://arxiv.org/abs/2201.11903" target="_blank" rel="noopener">Chain-of-Thought — Wei et al., 2022</a></li>
+          </ul>
+        </div>
+        <div class="sources-col">
+          <h3 data-i18n="sources.alignment">Alignment</h3>
+          <ul>
+            <li><a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">InstructGPT — Ouyang et al., 2022</a></li>
+            <li><a href="https://arxiv.org/abs/2305.18290" target="_blank" rel="noopener">DPO — Rafailov et al., 2023</a></li>
+            <li><a href="https://arxiv.org/abs/2212.08073" target="_blank" rel="noopener">Constitutional AI — Bai et al., 2022</a></li>
+            <li><a href="https://arxiv.org/abs/2402.03300" target="_blank" rel="noopener">GRPO / DeepSeekMath — 2024</a></li>
+            <li><a href="https://arxiv.org/abs/2501.12948" target="_blank" rel="noopener">DeepSeek-R1 — 2025</a></li>
+          </ul>
+        </div>
+        <div class="sources-col">
+          <h3 data-i18n="sources.chinese">Chinese ecosystem</h3>
+          <ul>
+            <li><a href="https://arxiv.org/abs/2412.19437" target="_blank" rel="noopener">DeepSeek-V3 — 2024</a></li>
+            <li><a href="https://arxiv.org/abs/2405.04434" target="_blank" rel="noopener">DeepSeek-V2 / MLA — 2024</a></li>
+            <li><a href="https://arxiv.org/abs/2407.10671" target="_blank" rel="noopener">Qwen2 — 2024</a></li>
+            <li><a href="https://arxiv.org/abs/2502.09992" target="_blank" rel="noopener">LLaDA — Nie et al., 2025</a></li>
+          </ul>
+        </div>
+        <div class="sources-col">
+          <h3 data-i18n="sources.efficiency">Efficiency</h3>
+          <ul>
+            <li><a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener">FlashAttention — Dao et al., 2022</a></li>
+            <li><a href="https://arxiv.org/abs/2307.08691" target="_blank" rel="noopener">FlashAttention-2 — 2023</a></li>
+            <li><a href="https://arxiv.org/abs/1911.02150" target="_blank" rel="noopener">Multi-Query Attention — Shazeer, 2019</a></li>
+            <li><a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener">GQA — Ainslie et al., 2023</a></li>
+            <li><a href="https://arxiv.org/abs/2106.09685" target="_blank" rel="noopener">LoRA — Hu et al., 2021</a></li>
+            <li><a href="https://arxiv.org/abs/1701.06538" target="_blank" rel="noopener">Sparse MoE — Shazeer et al., 2017</a></li>
+          </ul>
+        </div>
+        <div class="sources-col">
+          <h3 data-i18n="sources.multimodal">Multimodal & Long Context</h3>
+          <ul>
+            <li><a href="https://arxiv.org/abs/2103.00020" target="_blank" rel="noopener">CLIP — Radford et al., 2021</a></li>
+            <li><a href="https://arxiv.org/abs/2309.00071" target="_blank" rel="noopener">YaRN — Peng et al., 2023</a></li>
+            <li><a href="https://arxiv.org/abs/2310.01889" target="_blank" rel="noopener">Ring Attention — Liu et al., 2023</a></li>
+            <li><a href="https://arxiv.org/abs/2309.17453" target="_blank" rel="noopener">Attention Sinks / StreamingLLM — 2023</a></li>
+            <li><a href="https://arxiv.org/abs/2005.11401" target="_blank" rel="noopener">RAG — Lewis et al., 2020</a></li>
+          </ul>
+        </div>
+        <div class="sources-col">
+          <h3 data-i18n="sources.frontier">Frontier</h3>
+          <ul>
+            <li><a href="https://arxiv.org/abs/2312.00752" target="_blank" rel="noopener">Mamba — Gu & Dao, 2023</a></li>
+            <li><a href="https://openai.com/index/learning-to-reason-with-llms/" target="_blank" rel="noopener">OpenAI o1 — 2024</a></li>
+            <li><a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener">Model Context Protocol — Anthropic, 2024</a></li>
+            <li><a href="https://deepmind.google/models/gemini-diffusion/" target="_blank" rel="noopener">Gemini Diffusion — 2025</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-meta">
+          <span data-i18n="footer.built">Built as a portfolio explainer · 2026</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/linroger/how-diffusion-llms-work" target="_blank" rel="noopener" data-i18n="footer.companion">Companion: diffusion LMs ↗</a>
+          <a href="#top" data-i18n="footer.top">↑ Back to top</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ===== Tweaks ===== -->
+  <button class="tweaks-launcher" id="tweaksLauncher" aria-label="Open theme tweaks">
+    <span class="tweaks-launcher-dot"></span>
+    <span data-i18n="tweaks.launcher">Theme</span>
+  </button>
+
+  <div class="tweaks-panel" id="tweaksPanel" role="dialog" aria-label="Theme tweaks">
+    <div class="tweaks-header">
+      <div class="tweaks-title" data-i18n="tweaks.title">Tweaks</div>
+      <button class="tweaks-close" id="tweaksClose" aria-label="Close">×</button>
+    </div>
+
+    <div class="tweak-row">
+      <div class="tweak-label" data-i18n="tweaks.theme">Theme</div>
+      <div class="tweak-segmented" data-tweak="theme">
+        <button class="tweak-seg-btn" data-value="dark" data-i18n="tweaks.dark">Dark</button>
+        <button class="tweak-seg-btn" data-value="light" data-i18n="tweaks.light">Light</button>
+      </div>
+    </div>
+
+    <div class="tweak-row">
+      <div class="tweak-label" data-i18n="tweaks.density">Density</div>
+      <div class="tweak-segmented" data-tweak="density">
+        <button class="tweak-seg-btn" data-value="comfortable" data-i18n="tweaks.comfortable">Comfortable</button>
+        <button class="tweak-seg-btn" data-value="compact" data-i18n="tweaks.compact">Compact</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="i18n.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="viz/hero.js" defer></script>
+  <script src="viz/sec1-tokens.js" defer></script>
+  <script src="viz/sec2-attention.js" defer></script>
+  <script src="viz/sec3-multihead.js" defer></script>
+  <script src="viz/sec4-positions.js" defer></script>
+  <script src="viz/sec5-block.js" defer></script>
+  <script src="viz/sec6-sampling.js" defer></script>
+  <script src="viz/sec7-pretrain.js" defer></script>
+  <script src="viz/sec8-scaling.js" defer></script>
+  <script src="viz/sec9-icl.js" defer></script>
+  <script src="viz/sec10-cot.js" defer></script>
+  <script src="viz/sec11-rlhf.js" defer></script>
+  <script src="viz/sec12-dpo.js" defer></script>
+  <script src="viz/sec13-cai.js" defer></script>
+  <script src="viz/sec14-reasoning.js" defer></script>
+  <script src="viz/sec15-moe.js" defer></script>
+  <script src="viz/sec16-kvcache.js" defer></script>
+  <script src="viz/sec17-flash.js" defer></script>
+  <script src="viz/sec18-quant.js" defer></script>
+  <script src="viz/sec19-lora.js" defer></script>
+  <script src="viz/sec20-rope.js" defer></script>
+  <script src="viz/sec21-longctx.js" defer></script>
+  <script src="viz/sec22-rag.js" defer></script>
+  <script src="viz/sec23-clip.js" defer></script>
+  <script src="viz/sec24-mamba.js" defer></script>
+  <script src="viz/sec25-diffusion.js" defer></script>
+  <script src="viz/sec26-agent.js" defer></script>
+  <script src="viz/sec27-timeline.js" defer></script>
+  <script src="viz/sec27-extras.js" defer></script>
+  <script>
+    // Mobile nav toggle
+    (function () {
+      var btn = document.getElementById('navToggle');
+      var nav = document.getElementById('mobileNav');
+      var back = document.getElementById('mobileNavBackdrop');
+      if (!btn || !nav) return;
+      function setOpen(open) {
+        document.body.classList.toggle('nav-open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        nav.setAttribute('aria-hidden', open ? 'false' : 'true');
+      }
+      btn.addEventListener('click', function () {
+        setOpen(!document.body.classList.contains('nav-open'));
+      });
+      if (back) back.addEventListener('click', function () { setOpen(false); });
+      nav.addEventListener('click', function (e) {
+        if (e.target.tagName === 'A') setOpen(false);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.body.classList.contains('nav-open')) setOpen(false);
+      });
+    })();
+  </script>
+</body>
+</html>
