@@ -162,8 +162,10 @@
 
     const grid = document.createElement('div');
     grid.style.display = 'grid';
-    grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, 1fr))';
-    grid.style.gap = '12px';
+    // 3-col grid on wide screens, 1-col on narrow — keeps the cards readable
+    const w = container.clientWidth || 700;
+    grid.style.gridTemplateColumns = w < 640 ? '1fr' : 'repeat(3, 1fr)';
+    grid.style.gap = '14px';
     container.appendChild(grid);
 
     ['mha', 'gqa', 'mla'].forEach((k) => drawColumn(grid, k, L));
@@ -171,7 +173,8 @@
     const actions = document.createElement('div');
     actions.style.display = 'flex';
     actions.style.gap = '10px';
-    actions.style.marginTop = '14px';
+    actions.style.justifyContent = 'center';
+    actions.style.marginTop = '16px';
     actions.innerHTML = `<button class="btn" id="kv-play">${L.play}</button>`;
     container.appendChild(actions);
 

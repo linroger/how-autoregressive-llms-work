@@ -11,7 +11,7 @@ window.I18N = {
     'nav.part2': 'Pretraining',
     'nav.part3': 'Alignment',
     'nav.part4': 'Efficiency',
-    'nav.part5': 'Memory & Modality',
+    'nav.part5': 'Memory',
     'nav.part6': 'Frontier',
     'toc.title': 'Contents',
 
